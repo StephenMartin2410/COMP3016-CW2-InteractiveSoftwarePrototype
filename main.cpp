@@ -1,85 +1,260 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+//STD
 #include <iostream>
+
+//GLAD
+#include <glad/glad.h>
+
+//GLM
+#include "glm/ext/vector_float3.hpp"
+#include <glm/gtc/type_ptr.hpp> //Access to the value_ptr
+
+//ASSIMP
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+//LEARNOPENGL
+#include <learnopengl/shader_m.h>
+#include <learnopengl/model.h>
+
+//GENERAL
+#include "main.h"
+
 using namespace std;
+using namespace glm;
+
+//Window
+int windowWidth;
+int windowHeight;
+
+//VAO vertex attribute positions in correspondence to vertex attribute type
+enum VAO_IDs { Triangles, Indices, Colours, Textures, NumVAOs = 2 };
+//VAOs
+GLuint VAOs[NumVAOs];
+
+//Buffer types
+enum Buffer_IDs { ArrayBuffer, NumBuffers = 4 };
+//Buffer objects
+GLuint Buffers[NumBuffers];
+
+//Transformations
+//Relative position within world space
+vec3 cameraPosition = vec3(0.0f, 0.0f, 3.0f);
+//The direction of travel
+vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
+//Up position within world space
+vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+
+//Camera sidways rotation
+float cameraYaw = -90.0f;
+//Camera vertical rotation
+float cameraPitch = 0.0f;
+//Determines if first entry of mouse into window
+bool mouseFirstEntry = true;
+//Positions of camera from given last frame
+float cameraLastXPos = 800.0f / 2.0f;
+float cameraLastYPos = 600.0f / 2.0f;
+
+//Time
+//Time change
+float deltaTime = 0.0f;
+//Last value of time change
+float lastFrame = 0.0f;
 
 int main()
 {
-	// (1) GLFW: Initialise & Configure
-	// -----------------------------------------
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
+    //Initialisation of GLFW
+    glfwInit();
+    //Initialisation of 'GLFWwindow' object
+    windowWidth = 1280;
+    windowHeight = 720;
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Lab5", NULL, NULL);
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //Checks if window has been successfully instantiated
+    if (window == NULL)
+    {
+        cout << "GLFW Window did not instantiate\n";
+        glfwTerminate();
+        return -1;
+    }
 
-	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    //Sets cursor to automatically bind to window & hides cursor pointer
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	int monitor_width = mode->width; // Monitor's width.
-	int monitor_height = mode->height;
+    //Binds OpenGL to window
+    glfwMakeContextCurrent(window);
 
-	int window_width = (int)(monitor_width * 0.5f); // Window size will be 50% the monitor's size...
-	int window_height = (int)(monitor_height * 0.5f); // ... Cast is simply to silence the compiler warning.
+    //Initialisation of GLAD
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        cout << "GLAD failed to initialise\n";
+        return -1;
+    }
 
-	GLFWwindow* window = glfwCreateWindow(window_width, window_height, "GLFW Test Window – Changing Colours", NULL, NULL);
-	// GLFWwindow* window = glfwCreateWindow(window_width, window_height, "Drawing Basic Shapes - Buffer Objects & Shaders", glfwGetPrimaryMonitor(), NULL); // Full Screen Mode ("Alt" + "F4" to Exit!)
+    //Loading of shaders
+    Shader Shaders("shaders/vertexShader.vert", "shaders/fragmentShader.frag");
+    Model Rock("media/rock/model.obj");
+    Shaders.use();
 
-	if (!window)
-	{
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
+    //Sets the viewport size within the window to match the window size of 1280x720
+    glViewport(0, 0, 1280, 720);
 
-	glfwMakeContextCurrent(window); // Set the window to be used and then centre that window on the monitor. 
-	glfwSetWindowPos(window, (monitor_width - window_width) / 2, (monitor_height - window_height) / 2);
+    //Sets the framebuffer_size_callback() function as the callback for the window resizing event
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	glfwSwapInterval(1); // Set VSync rate 1:1 with monitor's refresh rate.
+    //Sets the mouse_callback() function as the callback for the mouse movement event
+    glfwSetCursorPosCallback(window, mouse_callback);
 
-	// (2) GLAD: Load OpenGL Function Pointers
-	// -------------------------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) // For GLAD 2 use the following instead: gladLoadGL(glfwGetProcAddress)
-	{
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
+    //Model matrix
+    mat4 model = mat4(1.0f);
+    //Scaling to zoom in
+    model = scale(model, vec3(0.025f, 0.025f, 0.025f));
+    //Looking straight forward
+    model = rotate(model, radians(0.0f), vec3(1.0f, 0.0f, 0.0f));
+    //Elevation to look upon terrain
+    model = translate(model, vec3(0.0f, -2.f, -1.5f));
 
-	// (3) Enter the Main-Loop
-	// --------------------------------	
-	float red = 0.0f; // Set individual colours here: OpenGL RGB [0, 1] = Actual RGB / 255
-	float green = 0.35f;
-	float blue = 0.7f;
+    //Projection matrix
+    mat4 projection = perspective(radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
-	int red_dir = 1; // Colour change direction.
-	int green_dir = 1;
-	int blue_dir = 1;
+    //Render loop
+    while (glfwWindowShouldClose(window) == false)
+    {
+        //Time
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
-	while (!glfwWindowShouldClose(window)) // Main-Loop
-	{
-		red += 0.02f * red_dir; // Increase or decrease colour values.
-		green += 0.03f * green_dir;
-		blue += 0.04f * blue_dir;
+        //Input
+        ProcessUserInput(window); //Takes user input
 
-		if (red > 1 || red < 0) // Reverse the colour changing direction.
-			red_dir = -red_dir;
+        //Rendering
+        glClearColor(184.0f / 255.0f, 213.0f / 255.0f, 238.0f / 255.0f, 1.0f); //Colour to display on cleared window
+        glClear(GL_COLOR_BUFFER_BIT); //Clears the colour buffer
+        glClear(GL_DEPTH_BUFFER_BIT); //Might need
 
-		if (green > 1 || green < 0)
-			green_dir = -green_dir;
+        glEnable(GL_CULL_FACE); //Discards all back-facing triangles
 
-		if (blue > 1 || blue < 0)
-			blue_dir = -blue_dir;
+        //Transformations
+        mat4 view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp); //Sets the position of the viewer, the movement direction in relation to it & the world up direction
+        
+        mat4 mvp = projection * view * model;
+        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
+        
+        model = scale(model, glm::vec3(1000.0f));
+        mvp = projection * view * model;
+        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
+        glScalef(1000.0f, 1000.0f, 1000.0f);
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_POLYGON);
+        float num = float(rand() % 10 + 1);
+        for (GLfloat i = -2.5; i <= 2.5; i += 0.25) {
+            glVertex3f(i, 0, 2.5); glVertex3f(i, 0, -2.5);
+            glVertex3f(2.5, 0, i); glVertex3f(-2.5, 0, i);
+        }
+        glEnd();
+        model = scale(model, glm::vec3(0.001f));
+        mvp = projection * view * model;
+        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
+        //Drawing
+        
+        Rock.Draw(Shaders);
 
-		std::cout << "Red: " << red << " --- Green: " << green << " --- Blue: " << blue << std::endl;
+        //Refreshing
+        glfwSwapBuffers(window); //Swaps the colour buffer
+        glfwPollEvents(); //Queries all GLFW events
+    }
 
-		glClearColor(red, green, blue, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT); // Clear the screen with... red, green, blue.
+    //Safely terminates GLFW
+    glfwTerminate();
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+    return 0;
+}
 
-	/* glfwDestroyWindow(window) // Call this function to destroy a specific window */
-	glfwTerminate(); // Destroys all remaining windows and cursors, restores modified gamma ramps, and frees resources.
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    //Resizes window based on contemporary width & height values
+    glViewport(0, 0, width, height);
+}
 
-	exit(EXIT_SUCCESS); // Function call: exit() is a C/C++ function that performs various tasks to help clean up resources.
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    //Initially no last positions, so sets last positions to current positions
+    if (mouseFirstEntry)
+    {
+        cameraLastXPos = (float)xpos;
+        cameraLastYPos = (float)ypos;
+        mouseFirstEntry = false;
+    }
+
+    //Sets values for change in position since last frame to current frame
+    float xOffset = (float)xpos - cameraLastXPos;
+    float yOffset = cameraLastYPos - (float)ypos;
+
+    //Sets last positions to current positions for next frame
+    cameraLastXPos = (float)xpos;
+    cameraLastYPos = (float)ypos;
+
+    //Moderates the change in position based on sensitivity value
+    const float sensitivity = 0.025f;
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    //Adjusts yaw & pitch values against changes in positions
+    cameraYaw += xOffset;
+    cameraPitch += yOffset;
+
+    //Prevents turning up & down beyond 90 degrees to look backwards
+    if (cameraPitch > 89.0f)
+    {
+        cameraPitch = 89.0f;
+    }
+    else if (cameraPitch < -89.0f)
+    {
+        cameraPitch = -89.0f;
+    }
+
+    //Modification of direction vector based on mouse turning
+    vec3 direction;
+    direction.x = cos(radians(cameraYaw)) * cos(radians(cameraPitch));
+    direction.y = sin(radians(cameraPitch));
+    direction.z = sin(radians(cameraYaw)) * cos(radians(cameraPitch));
+    cameraFront = normalize(direction);
+}
+
+void ProcessUserInput(GLFWwindow* WindowIn)
+{
+    //Closes window on 'exit' key press
+    if (glfwGetKey(WindowIn, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(WindowIn, true);
+    }
+
+    //Extent to which to move in one instance
+    const float movementSpeed = 1.0f * deltaTime;
+    //WASD controls
+    if (glfwGetKey(WindowIn, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        cameraPosition += movementSpeed * cameraFront;
+    }
+    if (glfwGetKey(WindowIn, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        cameraPosition -= movementSpeed * cameraFront;
+    }
+    if (glfwGetKey(WindowIn, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        cameraPosition -= normalize(cross(cameraFront, cameraUp)) * movementSpeed;
+    }
+    if (glfwGetKey(WindowIn, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        cameraPosition += normalize(cross(cameraFront, cameraUp)) * movementSpeed;
+    }
+    if (glfwGetKey(WindowIn, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        cameraPosition += movementSpeed * cameraUp;
+    }
+    if (glfwGetKey(WindowIn, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        cameraPosition -= movementSpeed * cameraUp;
+    }
 }
