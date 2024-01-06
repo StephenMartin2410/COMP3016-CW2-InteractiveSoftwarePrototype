@@ -141,10 +141,12 @@ int main()
         }
         xOffset++;
         float rotangle = (float)(rand() % 4);
+        float yscale = 3.0f + (rand()) / (RAND_MAX / (1.0f - 3.0f));
+        model = glm::translate(model, glm::vec3(x+(xOffset*20.0f), y - 5.0f, z + (zOffset*17.0f)));//used to calculate the distance between the layed out buildings
+        model = glm::rotate(model, radians(90.0f * rotangle) , vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(2.0f, yscale, 2.0f));
+
         
-        model = glm::translate(model, glm::vec3(x+(xOffset*20.0f), y, z + (zOffset*17.0f)));//used to calculate the distance between the layed out buildings
-        model = glm::rotate(model, 360 / rotangle, vec3(0.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(2.0f));
 
         // 4. now add to list of matrices
         modelMatrices[i] = model;
