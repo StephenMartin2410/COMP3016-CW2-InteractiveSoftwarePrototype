@@ -10,6 +10,8 @@
 My starting point of this project was using the shader files and main.cpp file used in the lab 9 model loading task.
 ## Achievements
 - Loads 3 models into the program that use obj and mtl files to map textures onto themselves.
+  ![image](https://github.com/StephenMartin2410/COMP3016-CW2-InteractiveSoftwarePrototype/assets/91669127/a9faaa89-530d-42cc-a8da-4662c8565c5a)
+
 - Allows the camera to move in every axis.
 - Uses rand values to randomly generate the height of the building objects that are on the plane.
 - Uses rand values to randomly generate the distance between certain axis of the buildings.
