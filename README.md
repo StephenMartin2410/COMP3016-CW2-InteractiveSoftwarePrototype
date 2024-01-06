@@ -16,6 +16,8 @@ My starting point of this project was using the shader files and main.cpp file u
 - Uses rand values to randomly generate the height of the building objects that are on the plane.
 - Uses rand values to randomly generate the distance between certain axis of the buildings.
 - Uses rand values to randomly generate the rotation of the buildings.
+  ![image](https://github.com/StephenMartin2410/COMP3016-CW2-InteractiveSoftwarePrototype/assets/91669127/83dec73f-5654-44b0-99b6-fee8090912cf)
+
 - Outputs a quad used to highlight the textured signature model.
 - Outputs the signature.
   ![image](https://github.com/StephenMartin2410/COMP3016-CW2-InteractiveSoftwarePrototype/assets/91669127/64181d7f-03e0-444d-8a64-ed6445bbf2b4)
