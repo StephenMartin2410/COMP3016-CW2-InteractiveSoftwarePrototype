@@ -63,12 +63,13 @@ float lastFrame = 0.0f;
 
 int main()
 {
+
     //Initialisation of GLFW
     glfwInit();
     //Initialisation of 'GLFWwindow' object
     windowWidth = 1280;
     windowHeight = 720;
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Lab5", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "CW2", NULL, NULL);
 
     //Checks if window has been successfully instantiated
     if (window == NULL)
@@ -96,6 +97,7 @@ int main()
 
     Model Street("media/street/street.obj");
     Model Building("media/street/building.obj");
+    Model Signature("media/street/signature.obj");
     Shaders.use();
 
     //Sets the viewport size within the window to match the window size of 1280x720
@@ -158,12 +160,12 @@ int main()
         ProcessUserInput(window); //Takes user input
 
         //Rendering
-        glClearColor(184.0f / 255.0f, 213.0f / 255.0f, 238.0f / 255.0f, 1.0f); //Colour to display on cleared window
+        glClearColor(0.0f, 0.1f, 0.1f, 1.0f); //Colour to display on cleared window
         glClear(GL_COLOR_BUFFER_BIT); //Clears the colour buffer
-        glClear(GL_DEPTH_BUFFER_BIT); //Might need
+        glClear(GL_DEPTH_BUFFER_BIT); 
 
         glEnable(GL_CULL_FACE); //Discards all back-facing triangles
-        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);//disallows textures being shown in the order they are rendered and allows them to not overlap
         
         //Transformations
         mat4 view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp); //Sets the position of the viewer, the movement direction in relation to it & the world up direction
@@ -171,25 +173,20 @@ int main()
         Shaders.use();
         Shaders.setMat4("projection", projection);
         Shaders.setMat4("view", view);
-
         mat4 model = mat4(1.0f);
-        /*
-        model = scale(model, glm::vec3(1000.0f));
+        model = glm::translate(model, vec3(-1.0f, -1.0f, 0.0f));
+        model = rotate(model, radians(-90.0f), vec3(0.0f, 0.0f, 1.0f));
+        model = scale(model, glm::vec3(3.0f));
         Shaders.setMat4("model",model); //Setting of uniform with Shader class
 
-        glScalef(1000.0f, 1000.0f, 1000.0f);
-        glColor3f(1.0, 1.0, 1.0);
-        glBegin(GL_POLYGON);
-        float num = float(rand() % 10 + 1);
-        for (GLfloat i = -2.5; i <= 2.5; i += 0.25) {
-            glVertex3f(i, 0, 2.5); glVertex3f(i, 0, -2.5);
-            glVertex3f(2.5, 0, i); glVertex3f(-2.5, 0, i);
-        }
+
+        glBegin(GL_QUADS);
+        glVertex2f(-0.8f, 0.1f);     // Define vertices in counter-clockwise (CCW) order
+        glVertex2f(-0.2f, 0.1f);     //  so that the normal (front-face) is facing you
+        glVertex2f(-0.2f, 0.7f);
+        glVertex2f(-0.8f, 0.7f);
         glEnd();
-        model = scale(model, glm::vec3(0.002f));
-        */
-
-
+        
 
         //draw street map
         model = mat4(1.0f);
@@ -205,7 +202,12 @@ int main()
             Shaders.setMat4("model", modelMatrices[i]);
             Building.Draw(Shaders);
         }
-
+        model = mat4(1.0f);
+        scale = 0.2f;
+        model = glm::translate(model, vec3(0.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(scale));
+        Shaders.setMat4("model", model);
+        Signature.Draw(Shaders);
 
         //Refreshing
         glfwSwapBuffers(window); //Swaps the colour buffer
