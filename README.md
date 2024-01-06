@@ -26,10 +26,19 @@ My starting point of this project was using the shader files and main.cpp file u
 
 ## Class usage
 This project uses the model class to load the obj files and gather the textures to correctly render the objects into the view space. The model class loads the model using assimp, processes the mesh and textures of the objects and then allows the class to be used to draw the obj object.
+
 ## Program loop
 This prototype uses a while loop to process the users input (which is used to move the camera or close the window), sets the colour of the display window (used to simulate the sky), sets the view of the application (the perspective the user sees), sets the scale of all of the model objects, sets the location of the models (translation), outputs a quad, and then displays the signature infront of it. 
+
+## What I would do differently
+- Start from scratch. I think after becoming slightly more knowledgable with opengl I would like to experiment using my own files directly from the start. The only reason I didn't start the prototype from scratch is so that I could understand and slowly come to terms with how to use the formatting and different files. But after using opengl for a little bit, I feel like I could work from the ground up and then only include the functions and imports that I fully require.
+- Use model instancing to increase code simplicity and reduce performance impact when making lots of the same mesh type.
+- Put more effort into the model creation using blender. Because of the prototype label on the project I didn't attempt to fully flesh out any of the created models, but in the future I would like to explore more complex models and how to import them into opengl.
+
+
 ## Inspiration
 I got the inspiration for this prototype from talking about the randomly generated projects in one of the lectures. The idea was originally going to be using a noise map to randomly generate the height of buildings in a city but I retracted that idea to them the height generated using rand values within a range instead.
+
 ## Improvements that could be made
 - The model loading for the buildings could use instancing instead of the current for loop inplementation, this would mean that instead of going through a loop to render all of the buildings they could all be rendered with one call. This would increase the performance of the call and also decrease the load on the cpu.
 - Noise map random generation. I could use a noise map to randomly generate the height of buildings instead of random numbers, this could give me more control over the generation and be used as another feature of the prototype.
