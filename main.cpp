@@ -94,7 +94,7 @@ int main()
 
     //Loading of shaders
     Shader Shaders("shaders/vertexShader.vert", "shaders/fragmentShader.frag");
-
+    //Loading of models
     Model Street("media/street/street.obj");
     Model Building("media/street/building.obj");
     Model Signature("media/street/signature.obj");
@@ -122,7 +122,7 @@ int main()
     mat4 projection = perspective(radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
 
-    unsigned int amount = 35;
+    unsigned int amount = 35;//amount of buildings in the scene
     glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[amount];
     srand(static_cast<unsigned int>(glfwGetTime())); // initialize random seed
@@ -140,7 +140,7 @@ int main()
             zOffset++;
         }
         xOffset++;
-        model = glm::translate(model, glm::vec3(x+(xOffset*20.0f), y, z + (zOffset*17.0f)));
+        model = glm::translate(model, glm::vec3(x+(xOffset*20.0f), y, z + (zOffset*17.0f)));//used to calculate the distance between the layed out buildings
         model = glm::scale(model, glm::vec3(2.0f));
 
         // 4. now add to list of matrices
@@ -180,15 +180,15 @@ int main()
         Shaders.setMat4("model",model); //Setting of uniform with Shader class
 
 
-        glBegin(GL_QUADS);
-        glVertex2f(-0.8f, 0.1f);     // Define vertices in counter-clockwise (CCW) order
-        glVertex2f(-0.2f, 0.1f);     //  so that the normal (front-face) is facing you
+        glBegin(GL_QUADS);//draws a quad for the signature
+        glVertex2f(-0.8f, 0.1f);
+        glVertex2f(-0.2f, 0.1f);
         glVertex2f(-0.2f, 0.7f);
         glVertex2f(-0.8f, 0.7f);
         glEnd();
         
 
-        //draw street map
+        //draws street map
         model = mat4(1.0f);
         float scale = 0.5f;
         model = glm::translate(model, vec3(0.0f, -2.0f, 0.0f));
@@ -196,13 +196,14 @@ int main()
         Shaders.setMat4("model", model);
         Street.Draw(Shaders);
 
-        // draw buildings
+        // draws buildings
         for (unsigned int i = 0; i < amount; i++)
         {
             Shaders.setMat4("model", modelMatrices[i]);
             Building.Draw(Shaders);
         }
-        model = mat4(1.0f);
+
+        model = mat4(1.0f);//draws the signature
         scale = 0.2f;
         model = glm::translate(model, vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(scale));
@@ -298,11 +299,11 @@ void ProcessUserInput(GLFWwindow* WindowIn)
     {
         cameraPosition += normalize(cross(cameraFront, cameraUp)) * movementSpeed;
     }
-    if (glfwGetKey(WindowIn, GLFW_KEY_SPACE) == GLFW_PRESS)
+    if (glfwGetKey(WindowIn, GLFW_KEY_SPACE) == GLFW_PRESS)//space to go up
     {
         cameraPosition += movementSpeed * cameraUp;
     }
-    if (glfwGetKey(WindowIn, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    if (glfwGetKey(WindowIn, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)//control to go down
     {
         cameraPosition -= movementSpeed * cameraUp;
     }
