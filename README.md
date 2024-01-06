@@ -18,6 +18,8 @@ My starting point of this project was using the shader files and main.cpp file u
 - Uses rand values to randomly generate the rotation of the buildings.
 - Outputs a quad used to highlight the textured signature model.
 - Outputs the signature.
+  ![image](https://github.com/StephenMartin2410/COMP3016-CW2-InteractiveSoftwarePrototype/assets/91669127/64181d7f-03e0-444d-8a64-ed6445bbf2b4)
+
 ## Class usage
 This project uses the model class to load the obj files and gather the textures to correctly render the objects into the view space. The model class loads the model using assimp, processes the mesh and textures of the objects and then allows the class to be used to draw the obj object.
 ## Program loop
