@@ -15,7 +15,7 @@
 
 //LEARNOPENGL
 #include <learnopengl/shader_m.h>
-#include <learnopengl/model.h>
+#include "model.h"
 
 //GENERAL
 #include "main.h"
@@ -93,7 +93,9 @@ int main()
 
     //Loading of shaders
     Shader Shaders("shaders/vertexShader.vert", "shaders/fragmentShader.frag");
-    Model Rock("media/rock/model.obj");
+
+    Model Street("media/street/street.obj");
+    Model Building("media/street/building.obj");
     Shaders.use();
 
     //Sets the viewport size within the window to match the window size of 1280x720
@@ -117,6 +119,33 @@ int main()
     //Projection matrix
     mat4 projection = perspective(radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
+
+    unsigned int amount = 35;
+    glm::mat4* modelMatrices;
+    modelMatrices = new glm::mat4[amount];
+    srand(static_cast<unsigned int>(glfwGetTime())); // initialize random seed
+    float zOffset = 1.0f;
+    int xOffset = 1;
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        float x = (-20.0f) + (-50.0f);
+        float y = (4.0f);
+        float z = -51.0f;
+
+        if (xOffset > 5) {
+            xOffset = 0;
+            zOffset++;
+        }
+        xOffset++;
+        model = glm::translate(model, glm::vec3(x+(xOffset*20.0f), y, z + (zOffset*17.0f)));
+        model = glm::scale(model, glm::vec3(2.0f));
+
+        // 4. now add to list of matrices
+        modelMatrices[i] = model;
+    }
+
+
     //Render loop
     while (glfwWindowShouldClose(window) == false)
     {
@@ -134,16 +163,20 @@ int main()
         glClear(GL_DEPTH_BUFFER_BIT); //Might need
 
         glEnable(GL_CULL_FACE); //Discards all back-facing triangles
-
+        glEnable(GL_DEPTH_TEST);
+        
         //Transformations
         mat4 view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp); //Sets the position of the viewer, the movement direction in relation to it & the world up direction
-        
-        mat4 mvp = projection * view * model;
-        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
-        
+        mat4 projection = perspective(radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
+        Shaders.use();
+        Shaders.setMat4("projection", projection);
+        Shaders.setMat4("view", view);
+
+        mat4 model = mat4(1.0f);
+        /*
         model = scale(model, glm::vec3(1000.0f));
-        mvp = projection * view * model;
-        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
+        Shaders.setMat4("model",model); //Setting of uniform with Shader class
+
         glScalef(1000.0f, 1000.0f, 1000.0f);
         glColor3f(1.0, 1.0, 1.0);
         glBegin(GL_POLYGON);
@@ -153,12 +186,26 @@ int main()
             glVertex3f(2.5, 0, i); glVertex3f(-2.5, 0, i);
         }
         glEnd();
-        model = scale(model, glm::vec3(0.001f));
-        mvp = projection * view * model;
-        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
-        //Drawing
-        
-        Rock.Draw(Shaders);
+        model = scale(model, glm::vec3(0.002f));
+        */
+
+
+
+        //draw street map
+        model = mat4(1.0f);
+        float scale = 0.5f;
+        model = glm::translate(model, vec3(0.0f, -2.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(scale));
+        Shaders.setMat4("model", model);
+        Street.Draw(Shaders);
+
+        // draw buildings
+        for (unsigned int i = 0; i < amount; i++)
+        {
+            Shaders.setMat4("model", modelMatrices[i]);
+            Building.Draw(Shaders);
+        }
+
 
         //Refreshing
         glfwSwapBuffers(window); //Swaps the colour buffer

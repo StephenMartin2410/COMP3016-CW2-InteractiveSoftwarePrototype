@@ -1,19 +1,15 @@
 #version 460
-//Triangle position with values retrieved from main.cpp
-layout (location = 0) in vec3 position;
-//Texture coordinates from last stage
-layout (location = 2) in vec2 textureVertex;
+layout (location = 0) in vec3 aPos;
+layout (location = 2) in vec2 aTexCoords;
 
-//Model-View-Projection Matrix
-uniform mat4 mvpIn;
+out vec2 TexCoords;
 
-//Texture to send
-out vec2 textureFrag;
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
 void main()
 {
-    //Transformation applied to vertices
-    gl_Position = mvpIn * vec4(position.x, position.y, position.z, 1.0);
-    //Sending texture coordinates to next stage
-    textureFrag = textureVertex;
+    TexCoords = aTexCoords;
+    gl_Position = projection * view * model * vec4(aPos, 1.0f); 
 }

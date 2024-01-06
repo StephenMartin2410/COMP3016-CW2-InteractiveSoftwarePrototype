@@ -137,8 +137,14 @@
     <ClCompile Include="stbImageLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Public\OpenGL\include\learnopengl\model.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\fragmentShader.frag" />
+    <None Include="shaders\vertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
