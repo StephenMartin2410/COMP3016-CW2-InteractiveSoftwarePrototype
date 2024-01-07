@@ -1,5 +1,5 @@
 # Markdown Documentation
-# Video Link - 
+# Video Link - https://youtu.be/Ti9SPpUzILc?si=IrK7FKcqfQacrcUR
 ## How to use software
 - Open the given CW2.exe file in the project folder.
   ![image](https://github.com/StephenMartin2410/COMP3016-CW2-InteractiveSoftwarePrototype/assets/91669127/1fba0572-599d-4348-85b9-c62ed261c0c1)
